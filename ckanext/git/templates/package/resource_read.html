@@ -1,0 +1,8 @@
+{% ckan_extends %}
+
+{% block resource_actions_inner %}
+  {{ super() }}
+<a class="btn btn-primary resource-url-analytics resource-type-{{ res.resource_type }}" href="/dataset/{{ pkg.id }}/resource/{{ res.id }}/git/branches">
+  <i class="icon-edit"></i> {{ _('Edit') }}
+</a>
+{% endblock %}
