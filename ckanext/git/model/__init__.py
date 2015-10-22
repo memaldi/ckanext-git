@@ -54,7 +54,7 @@ class GitBranch(DomainObject):
         return instance.as_dict()
 
 
-def define_git_branch_table:
+def define_git_branch_table():
     global git_branch_table
 
     git_branch_table = Table(
@@ -70,13 +70,13 @@ def define_git_branch_table:
                nullable=False),
         Column('user_id', types.UnicodeText,
                ForeignKey('user.id',
-                           ondelete='CASCADE',
-                           onupdate='CASCADE'),
+                          ondelete='CASCADE',
+                          onupdate='CASCADE'),
                nullable=False),
         Column('branch', types.UnicodeText,
                nullable=False),
         Column('title', types.Text,
-                nullable=False),
+               nullable=False),
         Column('description', types.Text,
                nullable=True),
         Column('status', types.UnicodeText,

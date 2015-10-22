@@ -7,6 +7,7 @@ import requests
 import shutil
 
 from routes.mapper import SubMapper
+from ckanext.git.model import setup as model_setup
 
 config = ConfigParser.ConfigParser()
 config.read(os.environ['CKAN_CONFIG'])
@@ -19,6 +20,7 @@ class GitPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IConfigurer)
     plugins.implements(plugins.IResourceController)
     plugins.implements(plugins.IRoutes, inherit=True)
+    plugins.implements(plugins.IConfigurable)
 
     # IConfigurer
 
@@ -27,7 +29,13 @@ class GitPlugin(plugins.SingletonPlugin):
         toolkit.add_public_directory(config_, 'public')
         toolkit.add_resource('fanstatic', 'git')
 
+    # IConfigurable
+
+    def configure(self, config):
+        model_setup()
+
     # IRoutes
+
     def before_map(self, map):
         with SubMapper(
                 map,
@@ -35,6 +43,9 @@ class GitPlugin(plugins.SingletonPlugin):
             m.connect('branch_list',
                       '/dataset/{id}/resource/{resource_id}/git/branches',
                       action='branch_list', ckan_icon='edit')
+            m.connect('create_branch',
+                      '/dataset/{id}/resource/{resource_id}/git/new',
+                      action='create_branch', ckan_icon='plus')
 
         return map
 
