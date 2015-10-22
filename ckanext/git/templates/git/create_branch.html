@@ -6,13 +6,13 @@
     <div class="control-group control-full control-large">
       <label class="control-label" for="field-title">Title</label>
       <div class="controls ">
-        <input id="field-title" type="text" name="title" value="" placeholder="eg. A descriptive title" >
+        <input id="field-title" type="text" name="title" value="{% if c.branch %}{{c.branch.title}}{% endif %}" placeholder="eg. A descriptive title" >
       </div>
     </div>
     <div class="control-group control-full">
       <label class="control-label" for="field-notes">Description</label>
       <div class="controls editor">
-        <textarea id="field-notes" name="notes" cols="20" rows="5" placeholder="eg. Some useful notes about the modification"></textarea>
+        <textarea id="field-notes" name="notes" cols="20" rows="5" placeholder="eg. Some useful notes about the modification">{% if c.branch %}{{c.branch.description}}{% endif %}</textarea>
         <span class="editor-info-block">You can use <a href="#markdown" title="" data-target="popover" data-content="<pre><p>__Bold text__ or _italic text_</p><p># title<br>## secondary title<br>### etc</p><p>* list<br>* of<br>* items</p><p>http://auto.link.ed/</p></pre><p><b><a href='http://daringfireball.net/projects/markdown/syntax' target='_blank'>Full markdown syntax</a></b></p><p class='muted'><b>Please note:</b> HTML tags are stripped out for security reasons</p>" data-html="true" data-original-title="Markdown quick reference">Markdown formatting</a> here</span>
       </div>
     </div>

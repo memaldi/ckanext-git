@@ -46,6 +46,9 @@ class GitPlugin(plugins.SingletonPlugin):
             m.connect('create_branch',
                       '/dataset/{id}/resource/{resource_id}/git/new',
                       action='create_branch', ckan_icon='plus')
+            m.connect('edit_branch',
+                      '/dataset/{id}/resource/{resource_id}/git/edit/{branch_id}',
+                      action='create_branch', ckan_icon='plus')
 
         return map
 

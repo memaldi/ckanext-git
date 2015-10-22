@@ -75,7 +75,7 @@ class GitController(PackageController):
 
         return render('git/branches.html', extra_vars=vars)
 
-    def create_branch(self, id, resource_id):
+    def create_branch(self, id, resource_id, branch_id=None):
         vars = get_vars(self, id, resource_id)
         repo = git.Repo(os.path.join(REPO_DIR, resource_id))
         if request.method == 'POST':
@@ -83,27 +83,49 @@ class GitController(PackageController):
             notes = request.POST.get('notes')
             modifications = request.POST.get('modifications')
             user = model.User.by_name(c.user)
-            new_branch = repo.create_head(
-                '%s-%s' % (user.name, uuid.uuid4())
-            )
             resource_file_name = c.resource['url'].rsplit('/', 1)[-1]
-            f = open(os.path.join(REPO_DIR, resource_id, resource_file_name),
-                     'w')
-            f.write(modifications.encode('utf-8'))
-            f.close()
-            repo.head.reference = new_branch
             resource_path = os.path.join(REPO_DIR, resource_id,
                                          resource_file_name)
-            repo.index.add([resource_path])
-            repo.index.commit(notes)
-            GitBranch.create(user_id=user.id, resource_id=resource_id,
-                             title=title, description=notes,
-                             branch=new_branch.name, status='pending')
-            model.repo.commit()
+            if branch_id is None:
+                new_branch = repo.create_head(
+                    '%s-%s' % (user.name, uuid.uuid4())
+                )
+
+                repo.head.reference = new_branch
+
+                f = open(os.path.join(REPO_DIR, resource_id,
+                                      resource_file_name), 'w')
+                f.write(modifications.encode('utf-8'))
+                f.close()
+
+                repo.index.add([resource_path])
+                repo.index.commit(notes)
+                GitBranch.create(user_id=user.id, resource_id=resource_id,
+                                 title=title, description=notes,
+                                 branch=new_branch.name, status='pending')
+                model.repo.commit()
+            else:
+                branch = GitBranch.get(id=branch_id)
+                repo.git.checkout(branch.branch)
+                f = open(os.path.join(REPO_DIR, resource_id,
+                                      resource_file_name), 'w')
+                f.write(modifications.encode('utf-8'))
+                f.close()
+                repo.index.add([resource_path])
+                repo.index.commit(notes)
+                branch.title = title
+                branch.description = notes
+                branch.save()
+                model.repo.commit()
             # REDIRECT
         if request.method == 'GET':
             resource_file_name = c.resource['url'].rsplit('/', 1)[-1]
-            repo.git.checkout('master')
+            if branch_id is not None:
+                branch = GitBranch.get(id=branch_id)
+                repo.git.checkout(branch.branch)
+                c.branch = branch
+            else:
+                repo.git.checkout('master')
             f = open(os.path.join(REPO_DIR, resource_id, resource_file_name),
                      'r')
             c.resource_content = f.read().decode('utf-8')
