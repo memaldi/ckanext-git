@@ -5,7 +5,6 @@ import ckan.model as model
 from ckan.common import _, request, c
 import ckan.lib.base as base
 from ckanext.git.model import GitBranch
-import requests
 import git
 import ConfigParser
 import uuid
@@ -66,22 +65,24 @@ class GitController(PackageController):
         vars = get_vars(self, id, resource_id)
 
         user = model.User.by_name(c.user)
-        branches = GitBranch.get(user_id=user.id,
-                                 resource_id=resource_id)
+        print dir(GitBranch)
+        branches = GitBranch.filter(user_id=user.id,
+                                    resource_id=resource_id).all()
 
         c.branches = branches
+        print branches
+        print dir(branches)
 
         return render('git/branches.html', extra_vars=vars)
 
     def create_branch(self, id, resource_id):
         vars = get_vars(self, id, resource_id)
+        repo = git.Repo(os.path.join(REPO_DIR, resource_id))
         if request.method == 'POST':
             title = request.POST.get('title')
             notes = request.POST.get('notes')
             modifications = request.POST.get('modifications')
             user = model.User.by_name(c.user)
-            repo = git.Repo(os.path.join(REPO_DIR, resource_id))
-            print dir(user)
             new_branch = repo.create_head(
                 '%s-%s' % (user.name, uuid.uuid4())
             )
@@ -99,8 +100,12 @@ class GitController(PackageController):
                              title=title, description=notes,
                              branch=new_branch.name, status='pending')
             model.repo.commit()
+            # REDIRECT
         if request.method == 'GET':
-            resource_content = requests.get(c.resource['url']).text
-            c.resource_content = resource_content
-
+            resource_file_name = c.resource['url'].rsplit('/', 1)[-1]
+            repo.git.checkout('master')
+            f = open(os.path.join(REPO_DIR, resource_id, resource_file_name),
+                     'r')
+            c.resource_content = f.read().decode('utf-8')
+            f.close()
         return render('git/create_branch.html', extra_vars=vars)

@@ -13,8 +13,20 @@
           <th>Title</th>
           <th>Comment</th>
           <th>Status</th>
+          <th></th>
         </tr>
       </thead>
+      <tbody>
+        {% for branch in c.branches %}
+          <tr>
+            <td>{{loop.index}}</td>
+            <td>{{branch.title}}</td>
+            <td>{{branch.description}}</td>
+            <td>{% if branch.status == 'pending' %}<i class="icon-time"></i>{% endif %}</td>
+            <td><a href=""><i class="icon-edit"></i></a> <a href=""><i class="icon-trash"></i></a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
     </table>
   {% endif %}
 {% endblock %}
