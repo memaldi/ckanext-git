@@ -20,14 +20,17 @@
           <tr>
             <td>{{loop.index}}</td>
             <td>{{branch.title}}</td>
-            <td>{% if branch.status == 'pending' %}<i class="icon-time"></i>{% endif %}</td>
-            <td><a href="/dataset/{{pkg.name}}/resource/{{res.id}}/git/edit/{{branch.id}}"><i class="icon-edit"></i></a> <a href=""><i class="icon-trash"></i></a></td>
+            <td>{% if branch.status == 'pending' %}<i class="icon-time"></i>{% elif branch.status == 'accepted' %}<i class="icon-check" style="color:green;"></i>{% elif branch.status == 'discarded' %}<i class="icon-trash" style="color:red"></i>{% endif %}</td>
+            <td><a href="/dataset/{{pkg.name}}/resource/{{res.id}}/git/edit/{{branch.id}}"><i class="icon-edit"></i></a></td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
   {% endif %}
   <a href="/dataset/{{pkg.name}}/resource/{{res.id}}/git/new" class="btn btn-default btn-primary" role="Button"><i class="icon-plus-sign-alt"></i>Create</a>
+  {% if h.check_access('package_update', {'id':pkg.id }) %}
+    <a href="/dataset/{{pkg.name}}/resource/{{res.id}}/git/list" class="btn btn-default btn-primary" role="Button"><i class="icon-search"></i>Check modifications</a>
+  {% endif %}
 {% endblock %}
 
 {% block data_preview %}

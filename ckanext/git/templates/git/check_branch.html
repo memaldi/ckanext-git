@@ -1,0 +1,11 @@
+{% extends 'package/resource_read.html' %}
+
+{% block resource_content %}
+  {{c.patch_code|safe}}
+  <a href="/dataset/{{pkg.name}}/resource/{{res.id}}/git/check/{{c.branch_id}}/accept" class="btn btn-success" role="Button"><i class="icon-check"></i>Accept</a>
+  <a href="/dataset/{{pkg.name}}/resource/{{res.id}}/git/check/{{c.branch_id}}/discard" class="btn btn-danger" role="Button"><i class="icon-trash"></i>Discard</a>
+
+{% endblock %}
+
+{% block data_preview %}
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'package/resource_read.html' %}
+
+{% block resource_content %}
+  <h1>Pending modifications (Administrator)</h1>
+
+  {% if not c.branches %}
+    <h2>There are no pending modifications to show.</h2>
+  {% else %}
+    <table class="table table-striped table-bordered table-condensed">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Title</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for branch in c.branches %}
+          <tr>
+            <td>{{loop.index}}</td>
+            <td>{{branch.title}}</td>
+            <td>{% if branch.status == 'pending' %}<i class="icon-time"></i>{% elif branch.status == 'accepted' %}<i class="icon-check" style="color:green;"></i>{% endif %}</td>
+            <td><a href="/dataset/{{pkg.name}}/resource/{{res.id}}/git/check/{{branch.id}}"><i class="icon-edit"></i></a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+{% endblock %}
+
+{% block data_preview %}
+{% endblock %}

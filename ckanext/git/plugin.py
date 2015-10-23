@@ -49,6 +49,18 @@ class GitPlugin(plugins.SingletonPlugin):
             m.connect('edit_branch',
                       '/dataset/{id}/resource/{resource_id}/git/edit/{branch_id}',
                       action='create_branch', ckan_icon='plus')
+            m.connect('check_branches',
+                      '/dataset/{id}/resource/{resource_id}/git/list',
+                      action='check_branches', ckan_icon='plus')
+            m.connect('check_branch',
+                      '/dataset/{id}/resource/{resource_id}/git/check/{branch_id}',
+                      action='check_branch', ckan_icon='plus')
+            m.connect('accept_branch',
+                      '/dataset/{id}/resource/{resource_id}/git/check/{branch_id}/accept',
+                      action='accept_branch', ckan_icon='plus')
+            m.connect('discard_branch',
+                      '/dataset/{id}/resource/{resource_id}/git/check/{branch_id}/discard',
+                      action='discard_branch', ckan_icon='plus')
 
         return map
 

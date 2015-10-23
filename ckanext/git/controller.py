@@ -5,6 +5,10 @@ import ckan.model as model
 from ckan.common import _, request, c
 import ckan.lib.base as base
 from ckanext.git.model import GitBranch
+from pygments import highlight
+from pygments.formatters import HtmlFormatter
+from pygments.lexers.diff import DiffLexer
+from pylons.controllers.util import redirect
 import git
 import ConfigParser
 import uuid
@@ -117,7 +121,9 @@ class GitController(PackageController):
                 branch.description = notes
                 branch.save()
                 model.repo.commit()
-            # REDIRECT
+                return redirect('/dataset/%s/resource/%s/git/branches' %
+                                (id, resource_id))
+
         if request.method == 'GET':
             resource_file_name = c.resource['url'].rsplit('/', 1)[-1]
             if branch_id is not None:
@@ -131,3 +137,43 @@ class GitController(PackageController):
             c.resource_content = f.read().decode('utf-8')
             f.close()
         return render('git/create_branch.html', extra_vars=vars)
+
+    def check_branches(self, id, resource_id):
+        vars = get_vars(self, id, resource_id)
+        branches = GitBranch.filter(resource_id=resource_id,
+                                    status='pending').all()
+        c.branches = branches
+
+        return render('git/list_branches.html', extra_vars=vars)
+
+    def check_branch(self, id, resource_id, branch_id):
+        vars = get_vars(self, id, resource_id)
+        branch = GitBranch.get(id=branch_id)
+        repo = git.Repo(os.path.join(REPO_DIR, resource_id))
+        repo.git.checkout(branch.branch)
+        patch = repo.git.format_patch('master', '--stdout')
+        c.patch_code = highlight(patch, DiffLexer(), HtmlFormatter(full=True))
+        c.branch_id = branch_id
+
+        return render('git/check_branch.html', extra_vars=vars)
+
+    def accept_branch(self, id, resource_id, branch_id):
+        branch = GitBranch.get(id=branch_id)
+        branch.status = 'accepted'
+        branch.save()
+        model.repo.commit()
+        repo = git.Repo(os.path.join(REPO_DIR, resource_id))
+        repo.git.checkout('master')
+        repo.git.merge(branch.branch)
+
+        return redirect('/dataset/%s/resource/%s/git/list' %
+                        (id, resource_id))
+
+    def discard_branch(self, id, resource_id, branch_id):
+        branch = GitBranch.get(id=branch_id)
+        branch.status = 'discarded'
+        branch.save()
+        model.repo.commit()
+
+        return redirect('/dataset/%s/resource/%s/git/list' %
+                        (id, resource_id))
