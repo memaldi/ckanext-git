@@ -13,6 +13,7 @@ import git
 import ConfigParser
 import uuid
 import os
+import shutil
 
 config = ConfigParser.ConfigParser()
 config.read(os.environ['CKAN_CONFIG'])
@@ -20,6 +21,7 @@ config.read(os.environ['CKAN_CONFIG'])
 PLUGIN_SECTION = 'plugin:git'
 REPO_DIR = config.get(PLUGIN_SECTION, 'repo_dir')
 
+STORAGE_DIR = config.get('app:main', 'ckan.storage_path')
 
 render = tk.render
 abort = base.abort
@@ -69,13 +71,10 @@ class GitController(PackageController):
         vars = get_vars(self, id, resource_id)
 
         user = model.User.by_name(c.user)
-        print dir(GitBranch)
         branches = GitBranch.filter(user_id=user.id,
                                     resource_id=resource_id).all()
 
         c.branches = branches
-        print branches
-        print dir(branches)
 
         return render('git/branches.html', extra_vars=vars)
 
@@ -121,8 +120,8 @@ class GitController(PackageController):
                 branch.description = notes
                 branch.save()
                 model.repo.commit()
-                return redirect('/dataset/%s/resource/%s/git/branches' %
-                                (id, resource_id))
+            return redirect('/dataset/%s/resource/%s/git/branches' %
+                            (id, resource_id))
 
         if request.method == 'GET':
             resource_file_name = c.resource['url'].rsplit('/', 1)[-1]
@@ -158,6 +157,7 @@ class GitController(PackageController):
         return render('git/check_branch.html', extra_vars=vars)
 
     def accept_branch(self, id, resource_id, branch_id):
+        get_vars(self, id, resource_id)
         branch = GitBranch.get(id=branch_id)
         branch.status = 'accepted'
         branch.save()
@@ -165,6 +165,16 @@ class GitController(PackageController):
         repo = git.Repo(os.path.join(REPO_DIR, resource_id))
         repo.git.checkout('master')
         repo.git.merge(branch.branch)
+
+        resource_file_name = c.resource['url'].rsplit('/', 1)[-1]
+        resource_dir = resource_id[:3]
+        resource_subdir = resource_id[3:6]
+        resource_dir_filename = resource_id[6:]
+        shutil.copyfile(os.path.join(REPO_DIR,
+                                     resource_id, resource_file_name),
+                        os.path.join(STORAGE_DIR, 'resources',
+                                     resource_dir, resource_subdir,
+                                     resource_dir_filename))
 
         return redirect('/dataset/%s/resource/%s/git/list' %
                         (id, resource_id))
